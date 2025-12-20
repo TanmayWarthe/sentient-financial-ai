@@ -1,18 +1,46 @@
-import yfinance as yf
-import pandas as pd
-from datetime import datetime
 
-print("=" * 50)
-print("STOCK PRICE CHECKER - By YourName")
-print("=" * 50)
+import logging
+import configparser
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+config = configparser.ConfigParser()
+config.read('config.ini')
+log_level = config.get('DEFAULT', 'log_level', fallback='INFO')
+logger.setLevel(log_level)
+logger = logging.getLogger(__name__)
+
+logger.info("=" * 50)
+logger.info("STOCK PRICE CHECKER - By YourName")
+logger.info("=" * 50)
 
 # User se stock symbol poocho
-stock_symbol = input("\nStock ka symbol daalo (jaise AAPL, TSLA, GOOGL): ").upper()
+
+
+def get_stock_symbol() -> str:
+    """Prompt user for stock symbol."""
+    try:
+        return input("\nStock ka symbol daalo (jaise AAPL, TSLA, GOOGL): ").upper()
+    except Exception as e:
+        logger.error(f"Input error: {e}")
+        print("Input error. Please try again.")
+        exit()
+
+stock_symbol: str = get_stock_symbol()
 
 # User se comparison ke liye dusra stock poocho
-compare_with = input(f"\n{stock_symbol} ko kis stock se compare karna hai? (Enter chhod do agar nahi karna): ").upper() or None
 
-print(f"\n📡 {stock_symbol} ka data fetch kar raha hu...")
+def get_compare_with(symbol: str) -> str | None:
+    """Prompt user for comparison stock symbol."""
+    try:
+        return input(f"\n{symbol} ko kis stock se compare karna hai? (Enter chhod do agar nahi karna): ").upper() or None
+    except Exception as e:
+        logger.error(f"Input error: {e}")
+        print("Input error. Please try again.")
+        return None
+
+compare_with: str | None = get_compare_with(stock_symbol)
+
+logger.info(f"\n📡 {stock_symbol} ka data fetch kar raha hu...")
 
 try:
     # Stock data lo
@@ -39,8 +67,8 @@ try:
     company_name = info.get('longName', stock_symbol)
     
 except Exception as e:
-    print(f"❌ Error: {e}")
-    print("Kya stock symbol sahi hai? (AAPL, TSLA, MSFT, etc.)")
+    logger.error(f"❌ Error: {e}")
+    logger.error("Kya stock symbol sahi hai? (AAPL, TSLA, MSFT, etc.)")
     exit()
 
 
