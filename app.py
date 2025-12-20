@@ -1,8 +1,58 @@
+#
+# StockSense AI - Streamlit App
+# Provides stock analysis and visualization
+#
 import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+import logging
+import configparser
+import argparse
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load configuration
+config = configparser.ConfigParser()
+config.read('config.ini')
+log_level = config.get('DEFAULT', 'log_level', fallback='INFO')
+logging.getLogger().setLevel(log_level)
+
+# CLI support
+def run_cli() -> None:
+    """Run the CLI interface for StockSense AI."""
+    parser = argparse.ArgumentParser(description="StockSense AI CLI")
+    parser.add_argument('--symbol', type=str, help='Stock symbol, e.g. AAPL')
+    parser.add_argument('--period', type=str, default='1mo', help='Time period, e.g. 1d, 1mo, 1y')
+    args = parser.parse_args()
+
+    if not args.symbol:
+        print("Please provide a stock symbol with --symbol")
+        return
+    stock_symbol: str = args.symbol.upper()
+    period: str = args.period
+    print(f"Fetching {stock_symbol} data for {period}...")
+    try:
+        stock = yf.Ticker(stock_symbol)
+        info = stock.info
+        print(f"Current Price: ${info.get('currentPrice', 'N/A')}")
+        print(f"Market Cap: ${info.get('marketCap', 'N/A')}")
+        print(f"PE Ratio: {info.get('trailingPE', 'N/A')}")
+        hist_data = stock.history(period=period)
+        if not hist_data.empty:
+            print(hist_data.tail(5)[['Open', 'High', 'Low', 'Close', 'Volume']])
+        else:
+            print("No historical data found.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        run_cli()
+    else:
+        # ...existing code...
 
 # Page setup
 st.set_page_config(
@@ -112,8 +162,9 @@ if analyze_btn or stock_symbol:
             )
             
         except Exception as e:
-            st.error(f"Error: {str(e)}")
-            st.info("Check if stock symbol is correct")
+            logging.error(f"Error fetching data for {stock_symbol}: {e}")
+            st.error(f"An error occurred while fetching data for {stock_symbol}. Please check the stock symbol and your internet connection.")
+            st.info("Example symbols: AAPL, TSLA, GOOGL, RELIANCE.NS")
 
 # If no button clicked yet
 else:
