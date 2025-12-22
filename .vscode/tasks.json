@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Streamlit app for manual test",
+			"type": "shell",
+			"command": "streamlit run app.py",
+			"group": "test"
+		}
+	]
+}
